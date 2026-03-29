@@ -1,5 +1,6 @@
 local vu = game:GetService("VirtualUser")
 local lp = game:GetService("Players").LocalPlayer
+local coregui = game:GetService("CoreGui")
 
 if getconnections then
     for _, connection in pairs(getconnections(lp.Idled)) do
@@ -12,4 +13,21 @@ end
 lp.Idled:Connect(function()
     vu:CaptureController()
     vu:ClickButton2(Vector2.new())
+end)
+local function removePause()
+    local gui = coregui:FindFirstChild("RobloxGui")
+    if gui then
+        local pause = gui:FindFirstChild("CoreScripts/NetworkPause")
+        if pause then
+            pause:Destroy()
+        end
+    end
+end
+
+removePause()
+
+coregui.RobloxGui.ChildAdded:Connect(function(obj)
+    if obj.Name == "CoreScripts/NetworkPause" then
+        obj:Destroy()
+    end
 end)
