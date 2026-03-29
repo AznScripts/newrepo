@@ -1,3 +1,15 @@
-for i, v in next, getconnections(game.Players.LocalPlayer.Idled) do -- antiafk
-v:Disable();
-end;
+local vu = game:GetService("VirtualUser")
+local lp = game:GetService("Players").LocalPlayer
+
+if getconnections then
+    for _, connection in pairs(getconnections(lp.Idled)) do
+        if connection["Disconnect"] then
+            connection["Disconnect"](connection)
+        end
+    end
+end
+
+lp.Idled:Connect(function()
+    vu:CaptureController()
+    vu:ClickButton2(Vector2.new())
+end)
