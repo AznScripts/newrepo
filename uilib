@@ -297,94 +297,90 @@ function Library:Window(title)
 		ButtonName.TextWrapped = true
 	end
 
-	function Lib:Toggle(name, callback)
-		local ToggleContainer = Instance.new("Frame")
-		local ToggleName = Instance.new("TextLabel")
-		local Toggle = Instance.new("TextButton")
-		local UICorner_3 = Instance.new("UICorner")
-		local Off = Instance.new("ImageLabel")
-		local On = Instance.new("ImageLabel")
+function Lib:Toggle(name, callback)
+	local ToggleContainer = Instance.new("Frame")
+	local ToggleName = Instance.new("TextLabel")
+	local Toggle = Instance.new("TextButton")
+	local UICorner_3 = Instance.new("UICorner")
+	local Box = Instance.new("Frame")
+	local BoxCorner = Instance.new("UICorner")
 
-		local Toggled = false
+	local Toggled = false
 
-		ToggleContainer.Name = "ToggleContainer"
-		ToggleContainer.Parent = Container
-		ToggleContainer.BackgroundColor3 = Color3.fromRGB(30,30,30)
-		ToggleContainer.BorderSizePixel = 0
-		ToggleContainer.Size = UDim2.new(0,204,0,30)
+	ToggleContainer.Name = "ToggleContainer"
+	ToggleContainer.Parent = Container
+	ToggleContainer.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	ToggleContainer.BorderSizePixel = 0
+	ToggleContainer.Size = UDim2.new(0,204,0,30)
 
-		ToggleName.Name = "ToggleName"
-		ToggleName.Parent = ToggleContainer
-		ToggleName.BackgroundTransparency = 1
-		ToggleName.Position = UDim2.new(0.0245098043,0,0.142857105,0)
-		ToggleName.Size = UDim2.new(0,169,0,20)
-		ToggleName.Font = Enum.Font.GothamSemibold
-		ToggleName.Text = name
-		ToggleName.TextColor3 = Color3.fromRGB(255,255,255)
-		ToggleName.TextScaled = true
-		ToggleName.TextWrapped = true
-		ToggleName.TextXAlignment = Enum.TextXAlignment.Left
+	ToggleName.Name = "ToggleName"
+	ToggleName.Parent = ToggleContainer
+	ToggleName.BackgroundTransparency = 1
+	ToggleName.Position = UDim2.new(0.0245098043,0,0.142857105,0)
+	ToggleName.Size = UDim2.new(0,169,0,20)
+	ToggleName.Font = Enum.Font.GothamSemibold
+	ToggleName.Text = name
+	ToggleName.TextColor3 = Color3.fromRGB(255,255,255)
+	ToggleName.TextScaled = true
+	ToggleName.TextWrapped = true
+	ToggleName.TextXAlignment = Enum.TextXAlignment.Left
 
-		Toggle.Name = "Toggle"
-		Toggle.Parent = ToggleContainer
-		Toggle.BackgroundColor3 = Color3.fromRGB(39,39,39)
-		Toggle.Position = UDim2.new(0.852941215,0,0.0666666627,0)
-		Toggle.Size = UDim2.new(0,25,0,23)
-		Toggle.AutoButtonColor = false
-		Toggle.Text = ""
+	Toggle.Name = "Toggle"
+	Toggle.Parent = ToggleContainer
+	Toggle.BackgroundColor3 = Color3.fromRGB(39,39,39)
+	Toggle.Position = UDim2.new(0.852941215,0,0.1666666627,0)
+	Toggle.Size = UDim2.new(0,18,0,18)
+	Toggle.AutoButtonColor = false
+	Toggle.Text = ""
 
-		UICorner_3.CornerRadius = UDim.new(0,3)
-		UICorner_3.Parent = Toggle
+	UICorner_3.CornerRadius = UDim.new(0,3)
+	UICorner_3.Parent = Toggle
 
-		Off.Name = "Off"
-		Off.Parent = Toggle
-		Off.BackgroundTransparency = 1
-		Off.Size = UDim2.new(0,25,0,25)
-		Off.Image = "rbxassetid://3926305904"
-		Off.ImageColor3 = Color3.fromRGB(255,0,68)
-		Off.ImageRectOffset = Vector2.new(924,724)
-		Off.ImageRectSize = Vector2.new(36,36)
+	Box.Name = "Box"
+	Box.Parent = Toggle
+	Box.BackgroundColor3 = Color3.fromRGB(0,255,102)
+	Box.Size = UDim2.new(1,-4,1,-4)
+	Box.Position = UDim2.new(0,2,0,2)
+	Box.Visible = false
 
-		On.Name = "On"
-		On.Parent = Toggle
-		On.BackgroundTransparency = 1
-		On.Size = UDim2.new(0,25,0,25)
-		On.Visible = false
-		On.Image = "rbxassetid://3926305904"
-		On.ImageColor3 = Color3.fromRGB(0,255,102)
-		On.ImageRectOffset = Vector2.new(312,4)
-		On.ImageRectSize = Vector2.new(24,24)
+	BoxCorner.CornerRadius = UDim.new(0,2)
+	BoxCorner.Parent = Box
 
-		Toggle.MouseButton1Click:Connect(function()
-			Toggled = not Toggled
+	Toggle.MouseButton1Click:Connect(function()
+		Toggled = not Toggled
 
-			if Toggled then
-				Off.Rotation = 0
+		if Toggled then
+			Box.Visible = true
 
-				TweenService:Create(Off, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					Rotation = 360
-				}):Play()
+			Box.Size = UDim2.new(0,0,0,0)
+			Box.Position = UDim2.new(0.5,0,0.5,0)
 
-				task.wait(0.3)
+			Box:TweenSizeAndPosition(
+				UDim2.new(1,-4,1,-4),
+				UDim2.new(0,2,0,2),
+				"InOut",
+				"Quad",
+				0.15,
+				true
+			)
+		else
+			Box:TweenSizeAndPosition(
+				UDim2.new(0,0,0,0),
+				UDim2.new(0.5,0,0.5,0),
+				"InOut",
+				"Quad",
+				0.15,
+				true
+			)
 
-				Off.Visible = false
-				On.Visible = true
-			else
-				On.Rotation = 0
+			task.wait(0.15)
 
-				TweenService:Create(On, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					Rotation = -360
-				}):Play()
+			Box.Visible = false
+		end
 
-				task.wait(0.3)
-
-				On.Visible = false
-				Off.Visible = true
-			end
-
-			callback(Toggled)
-		end)
-	end
+		callback(Toggled)
+	end)
+end
 
 	return Lib
 end
