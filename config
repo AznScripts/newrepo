@@ -210,35 +210,40 @@ local SaveManager = {} do
 		end
 	end
 
-	function SaveManager:RefreshConfigList()
-		local list = listfiles(`{self.Folder}/settings`)
+function SaveManager:RefreshConfigList()
+	local list = listfiles(`{self.Folder}/settings`)
+	local out = {}
 
-		local out = {}
-		for i = 1, #list do
-			local file = list[i]
-			if file:sub(-5) == ".json" then
-				local pos = file:find(".json", 1, true)
-				local start = pos
+	for i = 1, #list do
+		local file = list[i]
 
-				if typeof(pos) == "number" and typeof(start) == "number" then
-					local char = file:sub(pos, pos)
-					while char ~= "/" and char ~= "\\" and char ~= "" do
-						pos = pos - 1
-						char = file:sub(pos, pos)
-					end
+		if file:sub(-5) == ".json" then
+			local name = file:match("([^\\/]+)%.json$")
 
-					if char == "/" or char == "\\" then
-						local name = file:sub(pos + 1, start - 1)
-						if name ~= "options" then
-							out[#out + 1] = name
-						end
-					end
-				end
+			if name and name ~= "options" then
+				table.insert(out, name)
 			end
 		end
-
-		return out
 	end
+
+	table.sort(out)
+
+	local dropdown = self.Options.SaveManager_ConfigList
+
+	if dropdown then
+		local current = dropdown.Value
+
+		dropdown:SetValues(out)
+
+		if current and table.find(out, current) then
+			dropdown:SetValue(current)
+		else
+			dropdown:SetValue(nil)
+		end
+	end
+
+	return out
+end
 
 	function SaveManager:SetLibrary(library)
 		self.Library = library
@@ -404,29 +409,59 @@ local SaveManager = {} do
 	end
 })
 
+local AutoloadButton
 
-		section:AddButton({Title = "Refresh list", Callback = function()
-			SaveManager.Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
-			SaveManager.Options.SaveManager_ConfigList:SetValue(nil)
-		end})
+AutoloadButton = section:AddButton({
+	Title = "Set as autoload",
+	Description = "Current autoload config: none",
 
-		local AutoloadButton
-		AutoloadButton = section:AddButton({Title = "Set as autoload", Description = "Current autoload config: none", Callback = function()
-			local name = SaveManager.Options.SaveManager_ConfigList.Value
-			writefile(`{self.Folder}/settings/autoload.txt`, name)
-			AutoloadButton:SetDesc("Current autoload config: " .. name)
-			self.Library:Notify({
+	Callback = function()
+		local name = SaveManager.Options.SaveManager_ConfigList.Value
+		local autoPath = `{self.Folder}/settings/autoload.txt`
+
+		if not name then
+			return self.Library:Notify({
 				Title = "Interface",
 				Content = "Config loader",
-				SubContent = string.format("Set %q to auto load", name),
+				SubContent = "No config selected",
 				Duration = 7
 			})
-		end})
-
-		if isfile(`{self.Folder}/settings/autoload.txt`) then
-			local name = readfile(`{self.Folder}/settings/autoload.txt`)
-			AutoloadButton:SetDesc("Current autoload config: " .. name)
 		end
+
+		if isfile(autoPath) then
+			local current = readfile(autoPath)
+
+			if current == name then
+				delfile(autoPath)
+
+				AutoloadButton:SetDesc("Current autoload config: none")
+
+				return self.Library:Notify({
+					Title = "Interface",
+					Content = "Config loader",
+					SubContent = string.format("Removed autoload for %q", name),
+					Duration = 7
+				})
+			end
+		end
+
+		writefile(autoPath, name)
+
+		AutoloadButton:SetDesc("Current autoload config: " .. name)
+
+		self.Library:Notify({
+			Title = "Interface",
+			Content = "Config loader",
+			SubContent = string.format("Set %q to auto load", name),
+			Duration = 7
+		})
+	end
+})
+
+if isfile(`{self.Folder}/settings/autoload.txt`) then
+	local name = readfile(`{self.Folder}/settings/autoload.txt`)
+	AutoloadButton:SetDesc("Current autoload config: " .. name)
+end
 
 		SaveManager:SetIgnoreIndexes({ "SaveManager_ConfigList", "SaveManager_ConfigName" })
 	end
