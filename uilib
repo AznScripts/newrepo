@@ -257,6 +257,9 @@ function Library:Window(title)
 				0.3,
 				true
 			)
+
+			task.wait(0.15)
+
 			ButtonAni:TweenSize(
 				UDim2.new(0,0,0,0),
 				"InOut",
