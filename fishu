@@ -9,9 +9,9 @@ if getgenv().FishLoop then
     getgenv().FishLoop:Disconnect()
 end
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
+local Players = cloneref(game:GetService("Players"))
+local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+local RunService = cloneref(game:GetService("RunService"))
 local player = Players.LocalPlayer
 local bubble = player.PlayerGui.MainGui.Fishing.Bubble
 local hotbar = player.PlayerGui.MainGui.Main.Hotbar.List
@@ -24,6 +24,8 @@ getgenv().FiredBubbles = getgenv().FiredBubbles or {}
 
 local fired = getgenv().FiredBubbles
 local lastFishing = 0
+local lastHotbar = 0
+
 local ignore = {
 	["Atom's Something Fishing Store"] = true,
 	["Retro World: Ocean"] = true,
@@ -31,8 +33,15 @@ local ignore = {
 }
 
 getgenv().FishLoop = RunService.Heartbeat:Connect(function()
-    if not getgenv().AutoFish then
-        return
+if not getgenv().AutoFish then
+     return
+end
+
+if tick() - lastHotbar >= 2 then
+    local rods = {}
+
+    for _, rod in ipairs(ReplicatedStorage.Data[player.UserId].FishingRodInventory:GetChildren()) do
+        rods[rod.Name] = true
     end
 
     for _, v in ipairs(hotbar:GetChildren()) do
@@ -41,33 +50,33 @@ getgenv().FishLoop = RunService.Heartbeat:Connect(function()
 
             if title
             and title:IsA("TextLabel")
-            and string.find(title.Text, "Rod")
+            and rods[title.Text]
             and v.Select.ImageTransparency ~= 0 then
+
+                lastHotbar = tick()
                 ReplicatedStorage.Events.ToggleHotbar:InvokeServer(v.Name)
+                break
             end
         end
     end
+end
 
-    if mainGui.Visible and tick() - lastFishing >= 1 then
-        lastFishing = tick()
-        ReplicatedStorage.Events.Fishing:FireServer()
-    end
+if mainGui.Visible and tick() - lastFishing >= 2 then
+      lastFishing = tick()
+      ReplicatedStorage.Events.Fishing:FireServer()
+end
 
-    for _, child in ipairs(bubble:GetChildren()) do
-        if child:IsA("CanvasGroup")
-        and child.Name ~= "Template"
-        and not fired[child] then
+for _, child in ipairs(bubble:GetChildren()) do
+      if child:IsA("CanvasGroup")
+      and child.Name ~= "Template"
+      and not fired[child] then
 
-            fired[child] = true
+          fired[child] = true
 
-            ReplicatedStorage.Events.BubbleHandler:FireServer(
-                child.Name,
+          ReplicatedStorage.Events.BubbleHandler:FireServer(
+              child.Name,
                 nil,
-                {
-                    Position = child.Position
-                }
-            )
-
+                {Position = child.Position})
             child.Destroying:Once(function()
                 fired[child] = nil
             end)
