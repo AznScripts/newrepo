@@ -1,7 +1,9 @@
+if not game:IsLoaded() then game.Loaded:Wait() end
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/uilib"))()
 local antiafk = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/antiafk"))()
 
 local w = Library:Window("Fishu")
+local t = Library:Window("Teleport")
 
 if getgenv().FishLoop then
     getgenv().FishLoop:Disconnect()
@@ -14,6 +16,7 @@ local player = Players.LocalPlayer
 local bubble = player.PlayerGui.MainGui.Fishing.Bubble
 local hotbar = player.PlayerGui.MainGui.Main.Hotbar.List
 local mainGui = player.PlayerGui.MainGui.Main
+local areaFolder = workspace:WaitForChild("Area")
 
 getgenv().AutoFish = false
 getgenv().JesusMode = false
@@ -21,6 +24,11 @@ getgenv().FiredBubbles = getgenv().FiredBubbles or {}
 
 local fired = getgenv().FiredBubbles
 local lastFishing = 0
+local ignore = {
+	["Atom's Something Fishing Store"] = true,
+	["Retro World: Ocean"] = true,
+	["The Dream"] = true,
+}
 
 getgenv().FishLoop = RunService.Heartbeat:Connect(function()
     if not getgenv().AutoFish then
@@ -84,3 +92,11 @@ end)
 w:Toggle("Jesus Mode", function(v)
     getgenv().JesusMode = v
 end)
+
+for _, area in ipairs(areaFolder:GetChildren()) do
+	if not ignore[area.Name] then
+		t:Button(area.Name, function()
+			player.Character.HumanoidRootPart.CFrame = area.CFrame
+		end)
+	end
+end
