@@ -1,0 +1,86 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/uilib"))()
+local antiafk = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/antiafk"))()
+
+local w = Library:Window("Fishu")
+
+if getgenv().FishLoop then
+    getgenv().FishLoop:Disconnect()
+end
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local bubble = player.PlayerGui.MainGui.Fishing.Bubble
+local hotbar = player.PlayerGui.MainGui.Main.Hotbar.List
+local mainGui = player.PlayerGui.MainGui.Main
+
+getgenv().AutoFish = false
+getgenv().JesusMode = false
+getgenv().FiredBubbles = getgenv().FiredBubbles or {}
+
+local fired = getgenv().FiredBubbles
+local lastFishing = 0
+
+getgenv().FishLoop = RunService.Heartbeat:Connect(function()
+    if not getgenv().AutoFish then
+        return
+    end
+
+    for _, v in ipairs(hotbar:GetChildren()) do
+        if v:IsA("TextButton") then
+            local title = v:FindFirstChild("Title")
+
+            if title
+            and title:IsA("TextLabel")
+            and string.find(title.Text, "Rod")
+            and v.Select.ImageTransparency ~= 0 then
+                ReplicatedStorage.Events.ToggleHotbar:InvokeServer(v.Name)
+            end
+        end
+    end
+
+    if mainGui.Visible and tick() - lastFishing >= 1 then
+        lastFishing = tick()
+        ReplicatedStorage.Events.Fishing:FireServer()
+    end
+
+    for _, child in ipairs(bubble:GetChildren()) do
+        if child:IsA("CanvasGroup")
+        and child.Name ~= "Template"
+        and not fired[child] then
+
+            fired[child] = true
+
+            ReplicatedStorage.Events.BubbleHandler:FireServer(
+                child.Name,
+                nil,
+                {
+                    Position = child.Position
+                }
+            )
+
+            child.Destroying:Once(function()
+                fired[child] = nil
+            end)
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait() do
+        for _, v in ipairs(workspace.Water:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = getgenv().JesusMode
+            end
+        end
+    end
+end)
+
+w:Toggle("Auto Fish", function(v)
+    getgenv().AutoFish = v
+end)
+
+w:Toggle("Jesus Mode", function(v)
+    getgenv().JesusMode = v
+end)
