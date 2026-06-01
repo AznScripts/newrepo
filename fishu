@@ -13,13 +13,16 @@ local Players = cloneref(game:GetService("Players"))
 local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
 local RunService = cloneref(game:GetService("RunService"))
 local player = Players.LocalPlayer
-local bubble = player.PlayerGui.MainGui.Fishing.Bubble
-local hotbar = player.PlayerGui.MainGui.Main.Hotbar.List
-local mainGui = player.PlayerGui.MainGui.Main
+local mainGui = player.PlayerGui.MainGui
+local bubble = mainGui.Fishing.Bubble
+local hotbar = mainGui.Main.Hotbar.List
 local areaFolder = workspace:WaitForChild("Area")
+local DataPath = ReplicatedStorage.Data[player.UserId]
+local farmpos
 
 getgenv().AutoFish = false
 getgenv().JesusMode = false
+getgenv().AutoSell = false
 getgenv().FiredBubbles = getgenv().FiredBubbles or {}
 
 local fired = getgenv().FiredBubbles
@@ -37,10 +40,18 @@ if not getgenv().AutoFish then
      return
 end
 
+local limitObj = mainGui.Inventory.MainMenu.Inventory.Upper:FindFirstChild("Limit")
+if limitObj then
+local current, max = limitObj.Text:match("([^/]+)/([^/]+)")
+    if current == max then
+       return
+   end
+end
+
 if tick() - lastHotbar >= 2 then
     local rods = {}
 
-    for _, rod in ipairs(ReplicatedStorage.Data[player.UserId].FishingRodInventory:GetChildren()) do
+    for _, rod in ipairs(DataPath.FishingRodInventory:GetChildren()) do
         rods[rod.Name] = true
     end
 
@@ -61,7 +72,7 @@ if tick() - lastHotbar >= 2 then
     end
 end
 
-if mainGui.Visible and tick() - lastFishing >= 2 then
+if mainGui.Main.Visible and tick() - lastFishing >= 3 then
       lastFishing = tick()
       ReplicatedStorage.Events.Fishing:FireServer()
 end
@@ -94,12 +105,61 @@ task.spawn(function()
     end
 end)
 
+
+task.spawn(function()
+    while task.wait() do
+        if getgenv().AutoSell then
+
+            local gamepass = DataPath.Gamepass:FindFirstChild("1683659694")
+            local limitObj = mainGui.Inventory.MainMenu.Inventory.Upper:FindFirstChild("Limit")
+
+            if limitObj then
+                local text = limitObj.Text
+                local current, max = text:match("([^/]+)/([^/]+)")
+
+                if current == max then
+                    if gamepass and gamepass.Value == true then
+                        ReplicatedStorage.Events.SellFish:InvokeServer("All")
+                    else
+                        local npcFolder = workspace.NPC:FindFirstChild("Fish Vendor")
+                        if npcFolder then
+                            local vendorModel = npcFolder:FindFirstChildWhichIsA("Model")
+                            if vendorModel then
+                                if not vendorModel.PrimaryPart then
+                                    vendorModel.PrimaryPart = vendorModel:FindFirstChildWhichIsA("BasePart")
+                                end
+                                if vendorModel.PrimaryPart then
+                                    player.Character:PivotTo(vendorModel.PrimaryPart.CFrame)
+                                    task.wait(0.2)
+                                    ReplicatedStorage.Events.SellFish:InvokeServer("All")
+				   if farmpos then 
+				       task.wait(0.2)
+				       player.Character:PivotTo(farmpos)
+                                    end
+				end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
 w:Toggle("Auto Fish", function(v)
     getgenv().AutoFish = v
 end)
 
 w:Toggle("Jesus Mode", function(v)
     getgenv().JesusMode = v
+end)
+
+w:Button("Set Farm Position", function()
+    farmpos = player.Character.HumanoidRootPart.CFrame
+end)
+
+w:Toggle("Sell When Max", function(v)
+    getgenv().AutoSell = v
 end)
 
 for _, area in ipairs(areaFolder:GetChildren()) do
