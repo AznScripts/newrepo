@@ -162,6 +162,16 @@ w:Toggle("Sell When Max", function(v)
     getgenv().AutoSell = v
 end)
 
+w:TextLabel("Inventory", function()
+   return
+   mainGui.Inventory.MainMenu.Inventory.Upper.Limit.Text
+end)
+
+w:TextLabel("Cash", function()
+   return
+   mainGui.Main.Stats.Cash.Value.Text
+end)
+
 for _, area in ipairs(areaFolder:GetChildren()) do
 	if not ignore[area.Name] then
 		t:Button(area.Name, function()
