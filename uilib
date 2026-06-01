@@ -1,3 +1,11 @@
+getgenv().UiLibToggles = getgenv().UiLibToggles or {}
+
+for _, callback in pairs(getgenv().UiLibToggles) do
+	pcall(callback, false)
+end
+
+table.clear(getgenv().UiLibToggles)
+
 for _,v in pairs((gethui and gethui() or game.CoreGui):GetChildren()) do
 	if v.Name == "UiLib" or v.Name == "ToggleUi" then
 		v:Destroy()
@@ -229,73 +237,73 @@ function Library:Window(title)
 
 	local Lib = {}
 
-	function Lib:Button(name, callback)
-		local ButtonContainer = Instance.new("Frame")
-		local Button = Instance.new("TextButton")
-		local ButtonAni = Instance.new("Frame")
-		local UICorner_2 = Instance.new("UICorner")
-		local UIListLayout = Instance.new("UIListLayout")
-		local ButtonName = Instance.new("TextLabel")
+function Lib:Button(name, callback)
+	local ButtonContainer = Instance.new("Frame")
+	local Button = Instance.new("TextButton")
+	local ButtonAni = Instance.new("Frame")
+	local UICorner_2 = Instance.new("UICorner")
+	local UIListLayout = Instance.new("UIListLayout")
+	local ButtonName = Instance.new("TextLabel")
 
-		ButtonContainer.Name = "ButtonContainer"
-		ButtonContainer.Parent = Container
-		ButtonContainer.BackgroundColor3 = Color3.fromRGB(30,30,30)
-		ButtonContainer.BorderSizePixel = 0
-		ButtonContainer.Size = UDim2.new(0,204,0,28)
+	ButtonContainer.Name = "ButtonContainer"
+	ButtonContainer.Parent = Container
+	ButtonContainer.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	ButtonContainer.BorderSizePixel = 0
+	ButtonContainer.Size = UDim2.new(0,204,0,28)
 
-		Button.Name = "Button"
-		Button.Parent = ButtonContainer
-		Button.BackgroundTransparency = 1
-		Button.Size = UDim2.new(0,204,0,28)
-		Button.Text = ""
+	Button.Name = "Button"
+	Button.Parent = ButtonContainer
+	Button.BackgroundTransparency = 1
+	Button.Size = UDim2.new(0,204,0,28)
+	Button.Text = ""
 
-		Button.MouseButton1Click:Connect(function()
-			ButtonAni:TweenSize(
-				UDim2.new(0,194,0,24),
-				"InOut",
-				"Sine",
-				0.3,
-				true
-			)
+	Button.MouseButton1Click:Connect(function()
+		ButtonAni:TweenSize(
+			UDim2.new(0,194,0,24),
+			"InOut",
+			"Sine",
+			0.3,
+			true
+		)
 
-			task.wait(0.15)
+		task.wait(0.15)
 
-			ButtonAni:TweenSize(
-				UDim2.new(0,0,0,0),
-				"InOut",
-				"Sine",
-				0.3,
-				true
-			)
+		ButtonAni:TweenSize(
+			UDim2.new(0,0,0,0),
+			"InOut",
+			"Sine",
+			0.3,
+			true
+		)
 
-			callback()
-		end)
+		callback()
+	end)
 
-		ButtonAni.Name = "ButtonAni"
-		ButtonAni.Parent = Button
-		ButtonAni.BackgroundColor3 = Color3.fromRGB(0,255,102)
-		ButtonAni.Position = UDim2.new(0.0245098043,0,0.0714285746,0)
+	ButtonAni.Name = "ButtonAni"
+	ButtonAni.Parent = Button
+	ButtonAni.BackgroundColor3 = Color3.fromRGB(0,255,102)
+	ButtonAni.Position = UDim2.new(0.0245098043,0,0.0714285746,0)
 
-		UICorner_2.CornerRadius = UDim.new(0,4)
-		UICorner_2.Parent = ButtonAni
+	UICorner_2.CornerRadius = UDim.new(0,4)
+	UICorner_2.Parent = ButtonAni
 
-		UIListLayout.Parent = Button
-		UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	UIListLayout.Parent = Button
+	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 
-		ButtonName.Name = "ButtonName"
-		ButtonName.Parent = ButtonContainer
-		ButtonName.BackgroundTransparency = 1
-		ButtonName.Position = UDim2.new(0.0245098043,0,0.142857149,0)
-		ButtonName.Size = UDim2.new(0,194,0,20)
-		ButtonName.ZIndex = 3
-		ButtonName.Font = Enum.Font.GothamSemibold
-		ButtonName.Text = name
-		ButtonName.TextColor3 = Color3.fromRGB(255,255,255)
-		ButtonName.TextScaled = true
-		ButtonName.TextWrapped = true
-	end
+	ButtonName.Name = "ButtonName"
+	ButtonName.Parent = ButtonContainer
+	ButtonName.BackgroundTransparency = 1
+	ButtonName.Position = UDim2.new(0.0245098043,0,0.142857149,0)
+	ButtonName.Size = UDim2.new(0,194,0,20)
+	ButtonName.ZIndex = 3
+	ButtonName.Font = Enum.Font.GothamSemibold
+	ButtonName.Text = name
+	ButtonName.TextColor3 = Color3.fromRGB(255,255,255)
+	ButtonName.TextScaled = true
+	ButtonName.TextWrapped = true
+end
 
 function Lib:Toggle(name, callback)
 	local ToggleContainer = Instance.new("Frame")
@@ -306,6 +314,7 @@ function Lib:Toggle(name, callback)
 	local BoxCorner = Instance.new("UICorner")
 
 	local Toggled = false
+	table.insert(getgenv().UiLibToggles, callback)
 
 	ToggleContainer.Name = "ToggleContainer"
 	ToggleContainer.Parent = Container
@@ -382,6 +391,41 @@ function Lib:Toggle(name, callback)
 	end)
 end
 
+function Lib:TextLabel(name, callback)
+	local LabelContainer = Instance.new("Frame")
+	local Label = Instance.new("TextLabel")
+
+	LabelContainer.Name = "LabelContainer"
+	LabelContainer.Parent = Container
+	LabelContainer.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	LabelContainer.BorderSizePixel = 0
+	LabelContainer.Size = UDim2.new(0,204,0,28)
+
+	Label.Name = "Label"
+	Label.Parent = LabelContainer
+	Label.BackgroundTransparency = 1
+	Label.Size = UDim2.new(0,194,0,20)
+	Label.Position = UDim2.new(0.0245,0,0.1428,0)
+	Label.Font = Enum.Font.GothamSemibold
+	Label.TextColor3 = Color3.fromRGB(255,255,255)
+	Label.TextScaled = true
+	Label.TextWrapped = true
+	Label.TextXAlignment = Enum.TextXAlignment.Left
+
+	task.spawn(function()
+		while Label.Parent do
+			local success, value = pcall(callback)
+
+			if success then
+				Label.Text = tostring(name) .. ": " .. tostring(value)
+			else
+				Label.Text = tostring(name) .. ": nil"
+			end
+
+			task.wait(0.1)
+		end
+	end)
+end
 	return Lib
 end
 
