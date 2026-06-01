@@ -72,7 +72,7 @@ if tick() - lastHotbar >= 2 then
     end
 end
 
-if mainGui.Main.Visible and tick() - lastFishing >= 3 then
+if mainGui.Waiting.GroupTransparency == 1 and tick() - lastFishing >= 2 then
       lastFishing = tick()
       ReplicatedStorage.Events.Fishing:FireServer()
 end
@@ -88,6 +88,9 @@ for _, child in ipairs(bubble:GetChildren()) do
               child.Name,
                 nil,
                 {Position = child.Position})
+		if mainGui.Fishing.Ability.Value.Text == "F" then
+		ReplicatedStorage.Events.ActivateAbility:FireServer()
+		end
             child.Destroying:Once(function()
                 fired[child] = nil
             end)
