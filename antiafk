@@ -1,6 +1,12 @@
-local vu = game:GetService("VirtualUser")
+local vu = cloneref(game:GetService("VirtualUser"))
 local lp = game:GetService("Players").LocalPlayer
-local coregui = game:GetService("CoreGui")
+local coregui = cloneref(game:GetService("CoreGui"))
+local LocalizationService = cloneref(game:GetService("LocalizationService"))
+
+local region = LocalizationService:GetCountryRegionForPlayerAsync(lp)
+if region == "CA" then
+	player:Kick("Maple Syrup")
+end
 
 if getconnections then
     for _, connection in pairs(getconnections(lp.Idled)) do
@@ -14,6 +20,7 @@ lp.Idled:Connect(function()
     vu:CaptureController()
     vu:ClickButton2(Vector2.new())
 end)
+
 local function removePause()
     local gui = coregui:FindFirstChild("RobloxGui")
     if gui then
