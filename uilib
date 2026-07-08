@@ -417,7 +417,7 @@ function Lib:TextLabel(name, callback)
 			local success, value = pcall(callback)
 
 			if success then
-				Label.Text = tostring(name) .. ": " .. tostring(value)
+				Label.Text = tostring(name) .. "" .. tostring(value)
 			else
 				Label.Text = tostring(name) .. ": nil"
 			end
