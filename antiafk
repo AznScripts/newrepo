@@ -5,7 +5,7 @@ local LocalizationService = cloneref(game:GetService("LocalizationService"))
 
 local region = LocalizationService:GetCountryRegionForPlayerAsync(lp)
 if region == "CA" then
-	player:Kick("Maple Syrup")
+	lp:Kick("Maple Syrup")
 end
 
 if getconnections then
