@@ -1,0 +1,122 @@
+if not game:IsLoaded() then game.Loaded:Wait() end
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/uilib"))()
+local antiafk = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/antiafk"))()
+local w = Library:Window("MM 2")
+local Players = cloneref(game:GetService("Players"))
+local LP = Players.LocalPlayer
+local HiddenUI = (type(gethui) == "function" and gethui()) or cloneref(game:GetService("CoreGui"))
+
+local HighlightFolder = HiddenUI:FindFirstChild("WeaponHighlights")
+if not HighlightFolder then
+    local newFolder = Instance.new("Folder")
+    newFolder.Name = "WeaponHighlights"
+    newFolder.Parent = HiddenUI
+    HighlightFolder = cloneref(newFolder)
+end
+
+w:Toggle("ESP", function(value)
+    getgenv().eqr = value
+    while getgenv().eqr do
+        task.wait()
+        pcall(function()
+            local localCharacter = LP.Character
+            local localBackpack = LP:FindFirstChild("Backpack")
+
+            local localHasKnife =
+                (localBackpack and localBackpack:FindFirstChild("Knife")) or
+                (localCharacter and localCharacter:FindFirstChild("Knife"))
+
+            local validHighlights = {}
+
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LP then
+                    local character = player.Character
+                    local backpack = player:FindFirstChild("Backpack")
+
+                    local hasGun =
+                        (backpack and backpack:FindFirstChild("Gun")) or
+                        (character and character:FindFirstChild("Gun"))
+
+                    local hasKnife =
+                        (backpack and backpack:FindFirstChild("Knife")) or
+                        (character and character:FindFirstChild("Knife"))
+
+                    if character and (localHasKnife or hasGun or hasKnife) then
+                        validHighlights[player.Name] = true
+
+                        local highlight = HighlightFolder:FindFirstChild(player.Name)
+                        if not highlight then
+                            local newHighlight = Instance.new("Highlight")
+                            newHighlight.Name = player.Name
+                            newHighlight.Parent = HighlightFolder
+                            highlight = cloneref(newHighlight)
+                        end
+
+                        highlight.Adornee = character
+                        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                        highlight.FillTransparency = 0.5
+                        highlight.OutlineTransparency = 0
+
+                        if hasKnife then
+                            highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                            highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+                        elseif hasGun then
+                            highlight.FillColor = Color3.fromRGB(0, 0, 255)
+                            highlight.OutlineColor = Color3.fromRGB(0, 0, 255)
+                        else
+                            highlight.FillColor = Color3.fromRGB(255, 255, 0)
+                            highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+                        end
+                    end
+                end
+            end
+
+            for _, child in ipairs(workspace:GetChildren()) do
+                if child:IsA("Model") and child:GetAttribute("MapID") ~= nil then
+                    local gunDrop = child:FindFirstChild("GunDrop")
+                    if gunDrop and gunDrop:IsA("BasePart") then
+                        validHighlights["DroppedGunBox"] = true
+
+                        local box = HighlightFolder:FindFirstChild("DroppedGunBox")
+                        if not box then
+                            local newBox = Instance.new("BoxHandleAdornment")
+                            newBox.Name = "DroppedGunBox"
+                            newBox.Parent = HighlightFolder
+                            box = cloneref(newBox)
+                        end
+
+                        box.Adornee = gunDrop
+                        box.AlwaysOnTop = true
+                        box.ZIndex = 10
+                        box.Size = Vector3.new(3, 3, 3) 
+                        box.Color3 = Color3.fromRGB(0, 255, 0)
+                        box.Transparency = 0.6
+                    end
+                end
+            end
+
+            for _, highlight in ipairs(HighlightFolder:GetChildren()) do
+                if not validHighlights[highlight.Name] then
+                    highlight:Destroy()
+                end
+            end
+        end)
+    end
+end)
+
+w:Button("Gun TP", function(value)
+    if not LP.Character:FindFirstChild("Knife") and not LP.Backpack:FindFirstChild("Knife") then
+        for _, child in ipairs(workspace:GetChildren()) do
+            if child:IsA("Model") and child:GetAttribute("MapID") ~= nil then
+                local gunDrop = child:FindFirstChild("GunDrop")
+                if gunDrop then
+                    local oldCFrame = LP.Character.HumanoidRootPart.CFrame
+                    task.wait(.1)
+                    LP.Character.HumanoidRootPart.CFrame = gunDrop.CFrame
+                    task.wait(.1)
+                    LP.Character.HumanoidRootPart.CFrame = oldCFrame
+                end
+            end
+        end
+    end
+end)
