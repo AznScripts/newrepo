@@ -1,6 +1,8 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/uilib"))()
 local antiafk = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/antiafk"))()
+
+
 local w = Library:Window("MM 2")
 local Players = cloneref(game:GetService("Players"))
 local LP = Players.LocalPlayer
@@ -15,9 +17,20 @@ if not HighlightFolder then
 end
 
 w:Toggle("ESP", function(value)
-    getgenv().eqr = value
-    while getgenv().eqr do
+    getgenv().esp = value
+    
+    if not getgenv().esp then
+        pcall(function()
+            HighlightFolder:ClearAllChildren()
+        end)
+    end
+
+    while getgenv().esp do
         task.wait()
+        if not getgenv().esp then 
+            pcall(function() HighlightFolder:ClearAllChildren() end)
+            break 
+        end
         pcall(function()
             local localCharacter = LP.Character
             local localBackpack = LP:FindFirstChild("Backpack")
@@ -103,6 +116,7 @@ w:Toggle("ESP", function(value)
         end)
     end
 end)
+
 
 w:Button("Gun TP", function(value)
     if not LP.Character:FindFirstChild("Knife") and not LP.Backpack:FindFirstChild("Knife") then
