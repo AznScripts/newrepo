@@ -2,171 +2,183 @@ if not game:IsLoaded() then game.Loaded:Wait() end
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/uilib"))()
 local antiafk = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznScripts/newrepo/refs/heads/main/antiafk"))()
 
+local w = Library:Window("Fishu")
+local t = Library:Window("Teleport")
 
-local w = Library:Window("MM 2")
-local Players = cloneref(game:GetService("Players"))
-const LP = Players.LocalPlayer
-local HiddenUI = (type(gethui) == "function" and gethui()) or cloneref(game:GetService("CoreGui"))
-
-local HighlightFolder = HiddenUI:FindFirstChild("WeaponHighlights")
-if not HighlightFolder then
-    local newFolder = Instance.new("Folder")
-    newFolder.Name = "WeaponHighlights"
-    newFolder.Parent = HiddenUI
-    HighlightFolder = cloneref(newFolder)
+if getgenv().FishLoop then
+    getgenv().FishLoop:Disconnect()
 end
 
-w:Toggle("ESP", function(value)
-    getgenv().esp = value
-    
-    if not getgenv().esp then
-        pcall(function()
-            HighlightFolder:ClearAllChildren()
-        end)
+local Players = cloneref(game:GetService("Players"))
+local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+local RunService = cloneref(game:GetService("RunService"))
+local player = Players.LocalPlayer
+local mainGui = player.PlayerGui.MainGui
+local bubble = mainGui.Fishing.Bubble
+local hotbar = mainGui.Main.Hotbar.List
+local areaFolder = workspace:WaitForChild("Area")
+local DataPath = ReplicatedStorage.Data[player.UserId]
+local farmpos
+
+getgenv().AutoFish = false
+getgenv().JesusMode = false
+getgenv().AutoSell = false
+getgenv().FiredBubbles = getgenv().FiredBubbles or {}
+
+local fired = getgenv().FiredBubbles
+local lastFishing = 0
+local lastHotbar = 0
+
+local ignore = {
+	["Atom's Something Fishing Store"] = true,
+	["Retro World: Ocean"] = true,
+	["The Dream"] = true,
+}
+
+getgenv().FishLoop = RunService.Heartbeat:Connect(function()
+if not getgenv().AutoFish then
+     return
+end
+
+local limitObj = mainGui.Inventory.MainMenu.Inventory.Upper:FindFirstChild("Limit")
+if limitObj then
+local current, max = limitObj.Text:match("([^/]+)/([^/]+)")
+    if current == max then
+       return
+   end
+end
+
+if tick() - lastHotbar >= 2 then
+    local rods = {}
+
+    for _, rod in ipairs(DataPath.FishingRodInventory:GetChildren()) do
+        rods[rod.Name] = true
     end
 
-    while getgenv().esp do
-        task.wait()
-        if not getgenv().esp then 
-            pcall(function() HighlightFolder:ClearAllChildren() end)
-            break 
+    for _, v in ipairs(hotbar:GetChildren()) do
+        if v:IsA("TextButton") then
+            local title = v:FindFirstChild("Title")
+
+            if title
+            and title:IsA("TextLabel")
+            and rods[title.Text]
+            and v.Select.ImageTransparency ~= 0 then
+
+                lastHotbar = tick()
+                ReplicatedStorage.Events.ToggleHotbar:InvokeServer(v.Name)
+                break
+            end
         end
-        pcall(function()
-            local localCharacter = LP.Character
-            local localBackpack = LP:FindFirstChild("Backpack")
-
-            local localHasKnife =
-                (localBackpack and localBackpack:FindFirstChild("Knife")) or
-                (localCharacter and localCharacter:FindFirstChild("Knife"))
-
-            local validHighlights = {}
-
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LP then
-                    local character = player.Character
-                    local backpack = player:FindFirstChild("Backpack")
-
-                    local hasGun =
-                        (backpack and backpack:FindFirstChild("Gun")) or
-                        (character and character:FindFirstChild("Gun"))
-
-                    local hasKnife =
-                        (backpack and backpack:FindFirstChild("Knife")) or
-                        (character and character:FindFirstChild("Knife"))
-
-                    if character and (localHasKnife or hasGun or hasKnife) then
-                        validHighlights[player.Name] = true
-
-                        local highlight = HighlightFolder:FindFirstChild(player.Name)
-                        if not highlight then
-                            local newHighlight = Instance.new("Highlight")
-                            newHighlight.Name = player.Name
-                            newHighlight.Parent = HighlightFolder
-                            highlight = cloneref(newHighlight)
-                        end
-
-                        highlight.Adornee = character
-                        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                        highlight.FillTransparency = 0.5
-                        highlight.OutlineTransparency = 0
-
-                        if hasKnife then
-                            highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                            highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
-                        elseif hasGun then
-                            highlight.FillColor = Color3.fromRGB(0, 0, 255)
-                            highlight.OutlineColor = Color3.fromRGB(0, 0, 255)
-                        else
-                            highlight.FillColor = Color3.fromRGB(255, 255, 0)
-                            highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
-                        end
-                    end
-                end
-            end
-
-            for _, child in ipairs(workspace:GetChildren()) do
-                if child:IsA("Model") and child:GetAttribute("MapID") ~= nil then
-                    local gunDrop = child:FindFirstChild("GunDrop")
-                    if gunDrop and gunDrop:IsA("BasePart") then
-                        validHighlights["DroppedGunBox"] = true
-
-                        local box = HighlightFolder:FindFirstChild("DroppedGunBox")
-                        if not box then
-                            local newBox = Instance.new("BoxHandleAdornment")
-                            newBox.Name = "DroppedGunBox"
-                            newBox.Parent = HighlightFolder
-                            box = cloneref(newBox)
-                        end
-
-                        box.Adornee = gunDrop
-                        box.AlwaysOnTop = true
-                        box.ZIndex = 10
-                        box.Size = Vector3.new(3, 3, 3) 
-                        box.Color3 = Color3.fromRGB(0, 255, 0)
-                        box.Transparency = 0.6
-                    end
-                end
-            end
-
-            for _, highlight in ipairs(HighlightFolder:GetChildren()) do
-                if not validHighlights[highlight.Name] then
-                    highlight:Destroy()
-                end
-            end
-        end)
     end
-end)
+end
 
+if mainGui.Waiting.GroupTransparency == 1 and tick() - lastFishing >= 2 then
+      lastFishing = tick()
+      ReplicatedStorage.Events.Fishing:FireServer()
+end
 
-w:Button("Gun TP", function(value)
-    if not LP.Character:FindFirstChild("Knife") and not LP.Backpack:FindFirstChild("Knife") then
-        for _, child in ipairs(workspace:GetChildren()) do
-            if child:IsA("Model") and child:GetAttribute("MapID") ~= nil then
-                local gunDrop = child:FindFirstChild("GunDrop")
-                if gunDrop then
-                    local oldCFrame = LP.Character.HumanoidRootPart.CFrame
-                    task.wait(.1)
-                    LP.Character.HumanoidRootPart.CFrame = gunDrop.CFrame
-                    task.wait(.1)
-                    LP.Character.HumanoidRootPart.CFrame = oldCFrame
-                end
-            end
+for _, child in ipairs(bubble:GetChildren()) do
+      if child:IsA("CanvasGroup")
+      and child.Name ~= "Template"
+      and not fired[child] then
+
+          fired[child] = true
+
+          ReplicatedStorage.Events.BubbleHandler:FireServer(
+              child.Name,
+                nil,
+                {Position = child.Position})
+		if mainGui.Fishing.Ability.Value.Text == "F" then
+		ReplicatedStorage.Events.ActivateAbility:FireServer()
+		end
+            child.Destroying:Once(function()
+                fired[child] = nil
+            end)
         end
     end
 end)
 
 task.spawn(function()
-	while task.wait(1) do
-		sheriff = "None"
-		murderer = "None"
+    while task.wait() do
+        for _, v in ipairs(workspace.Water:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = getgenv().JesusMode
+            end
+        end
+    end
+end)
 
-		for _, player in ipairs(Players:GetPlayers()) do
-			local backpack = player:FindFirstChild("Backpack")
-			local character = player.Character
 
-			local hasGun =
-				(backpack and backpack:FindFirstChild("Gun")) or
-				(character and character:FindFirstChild("Gun"))
+task.spawn(function()
+    while task.wait() do
+        if getgenv().AutoSell then
 
-			local hasKnife =
-				(backpack and backpack:FindFirstChild("Knife")) or
-				(character and character:FindFirstChild("Knife"))
+            local gamepass = DataPath.Gamepass:FindFirstChild("1683659694")
+            local limitObj = mainGui.Inventory.MainMenu.Inventory.Upper:FindFirstChild("Limit")
 
-			if hasGun then
-				sheriff = player.Name
-			end
+            if limitObj then
+                local text = limitObj.Text
+                local current, max = text:match("([^/]+)/([^/]+)")
 
-			if hasKnife then
-				murderer = player.Name
-			end
-		end
+                if current == max then
+                    if gamepass and gamepass.Value == true then
+                        ReplicatedStorage.Events.SellFish:InvokeServer("All")
+                    else
+                        local npcFolder = workspace.NPC:FindFirstChild("Fish Vendor")
+                        if npcFolder then
+                            local vendorModel = npcFolder:FindFirstChildWhichIsA("Model")
+                            if vendorModel then
+                                if not vendorModel.PrimaryPart then
+                                    vendorModel.PrimaryPart = vendorModel:FindFirstChildWhichIsA("BasePart")
+                                end
+                                if vendorModel.PrimaryPart then
+                                    player.Character:PivotTo(vendorModel.PrimaryPart.CFrame)
+                                    task.wait(0.2)
+                                    ReplicatedStorage.Events.SellFish:InvokeServer("All")
+				   if farmpos then 
+				       task.wait(0.2)
+				       player.Character:PivotTo(farmpos)
+                                    end
+				end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+w:Toggle("Auto Fish", function(v)
+    getgenv().AutoFish = v
+end)
+
+w:Toggle("Jesus Mode", function(v)
+    getgenv().JesusMode = v
+end)
+
+w:Button("Set Farm Position", function()
+    farmpos = player.Character.HumanoidRootPart.CFrame
+end)
+
+w:Toggle("Sell When Max", function(v)
+    getgenv().AutoSell = v
+end)
+
+w:TextLabel("Inventory", function()
+   return
+   mainGui.Inventory.MainMenu.Inventory.Upper.Limit.Text
+end)
+
+w:TextLabel("Cash", function()
+   return
+   mainGui.Main.Stats.Cash.Value.Text
+end)
+
+for _, area in ipairs(areaFolder:GetChildren()) do
+	if not ignore[area.Name] then
+		t:Button(area.Name, function()
+			player.Character.HumanoidRootPart.CFrame = area.CFrame
+		end)
 	end
-end)
-
-w:TextLabel("Sheriff: ", function()
-	return sheriff
-end)
-
-w:TextLabel("Murder: ", function()
-	return murderer
-end)
+end
