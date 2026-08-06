@@ -5,7 +5,7 @@ local antiafk = loadstring(game:HttpGet("https://raw.githubusercontent.com/AznSc
 
 local w = Library:Window("MM 2")
 local Players = cloneref(game:GetService("Players"))
-local LP = Players.LocalPlayer
+const LP = Players.LocalPlayer
 local HiddenUI = (type(gethui) == "function" and gethui()) or cloneref(game:GetService("CoreGui"))
 
 local HighlightFolder = HiddenUI:FindFirstChild("WeaponHighlights")
@@ -133,4 +133,40 @@ w:Button("Gun TP", function(value)
             end
         end
     end
+end)
+
+task.spawn(function()
+	while task.wait(1) do
+		sheriff = "None"
+		murderer = "None"
+
+		for _, player in ipairs(Players:GetPlayers()) do
+			local backpack = player:FindFirstChild("Backpack")
+			local character = player.Character
+
+			local hasGun =
+				(backpack and backpack:FindFirstChild("Gun")) or
+				(character and character:FindFirstChild("Gun"))
+
+			local hasKnife =
+				(backpack and backpack:FindFirstChild("Knife")) or
+				(character and character:FindFirstChild("Knife"))
+
+			if hasGun then
+				sheriff = player.Name
+			end
+
+			if hasKnife then
+				murderer = player.Name
+			end
+		end
+	end
+end)
+
+w:TextLabel("Sheriff: ", function()
+	return sheriff
+end)
+
+w:TextLabel("Murder: ", function()
+	return murderer
 end)
